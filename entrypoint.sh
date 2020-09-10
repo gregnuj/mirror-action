@@ -70,4 +70,4 @@ git config --global credential.helper cache
 
 # add target repo as 'mirror'
 git remote add mirror "${REMOTE}"
-eval git push ${GIT_PUSH_ARGS} mirror "\"refs/remotes/origin/${SOURCE_BRANCH}:refs/heads/${REMOTE_BRANCH}\""
+git push ${GIT_PUSH_ARGS} mirror "refs/remotes/origin/${SOURCE_BRANCH}:refs/heads/${REMOTE_BRANCH}"
