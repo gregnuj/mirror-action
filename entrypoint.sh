@@ -8,28 +8,12 @@ fi
 GIT_USERNAME="${INPUT_GIT_USERNAME:-${GIT_USERNAME:-"git"}}"
 GIT_SSH_PRIVATE_KEY="${INPUT_GIT_SSH_PRIVATE_KEY}"
 GIT_PUSH_ARGS="${INPUT_GIT_PUSH_ARGS:-"--tags --force --prune"}"
+GIT_SSH_NO_VERIFY_HOST=${INPUT_GIT_SSH_NO_VERIFY_HOST}
+GIT_SSH_KNOWN_HOSTS=${INPUT_GIT_SSH_KNOWN_HOSTS}
 REMOTE="${INPUT_REMOTE:-"$*"}"
 SOURCE_BRANCH="${INPUT_SOURCE_BRANCH:-"*"}"
 REMOTE_BRANCH="${INPUT_REMOTE_BRANCH:-"${SOURCE_BRANCH}"}"
 HAS_CHECKED_OUT="$(git rev-parse --is-inside-work-tree 2>/dev/null || /bin/true)"
-
-
-#!/usr/bin/env bash
-set -e
-
-if [[ "${DEBUG}" -eq "true" ]]; then
-    set -x
-fi
-
-GIT_USERNAME=${INPUT_GIT_USERNAME:-${GIT_USERNAME:-"git"}}
-REMOTE=${INPUT_REMOTE:-"$*"}
-GIT_SSH_PRIVATE_KEY=${INPUT_GIT_SSH_PRIVATE_KEY}
-GIT_SSH_PUBLIC_KEY=${INPUT_GIT_SSH_PUBLIC_KEY}
-GIT_PUSH_ARGS=${INPUT_GIT_PUSH_ARGS:-"--tags --force --prune"}
-GIT_SSH_NO_VERIFY_HOST=${INPUT_GIT_SSH_NO_VERIFY_HOST}
-GIT_SSH_KNOWN_HOSTS=${INPUT_GIT_SSH_KNOWN_HOSTS}
-HAS_CHECKED_OUT="$(git rev-parse --is-inside-work-tree 2>/dev/null || /bin/true)"
-
 
 if [[ "${HAS_CHECKED_OUT}" != "true" ]]; then
     echo "WARNING: repo not checked out; attempting checkout" > /dev/stderr
@@ -50,7 +34,7 @@ fi
 git config --global credential.username "${GIT_USERNAME}"
 
 
-if [[ "${GIT_SSH_PRIVATE_KEY}" != "" ]]; then
+if [[ -n "${GIT_SSH_PRIVATE_KEY}" ]]; then
     mkdir -p ~/.ssh
     if [[ -n "${GIT_SSH_PUBLIC_KEY}" ]]; then
         echo "${GIT_SSH_PUBLIC_KEY}" > ~/.ssh/id_rsa.pub
