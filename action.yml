@@ -8,6 +8,12 @@ inputs:
   REMOTE:
     description: "The remote repository e.g. https://github.com/octocat/foo.git or git@github.com:octocat/foo.git"
     required: false
+  SOURCE_BRANCH:
+    description: "The source branch e.g. master"
+    required: false
+  REMOTE_BRANCH:
+    description: "The remote branch e.g. from_source"
+    required: false
   GIT_USERNAME:
     description: "Username for remote repository"
     required: false
