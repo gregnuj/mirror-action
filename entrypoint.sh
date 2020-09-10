@@ -40,7 +40,7 @@ fi
 if [[ -n "${GIT_SSH_PRIVATE_KEY}" ]]; then
     echo "${GIT_SSH_PRIVATE_KEY}" > ~/.ssh/id_rsa
     chmod 600 ~/.ssh/id_rsa
-    GIT_SSH_COMMAND="-i ~/.ssh/id_rsa -o IdentitiesOnly=yes"
+    GIT_SSH_COMMAND+=" -i ~/.ssh/id_rsa -o IdentitiesOnly=yes"
 fi
 
 # create publickey file
@@ -54,7 +54,7 @@ if [[ -n "${GIT_SSH_KNOWN_HOSTS}" ]]; then
     echo "${GIT_SSH_KNOWN_HOSTS}" > ~/.ssh/known_hosts
     GIT_SSH_COMMAND+=" -o UserKnownHostsFile=~/.ssh/known_hosts"
 elif [[ "${GIT_SSH_NO_VERIFY_HOST}" == "true" ]]; then
-    GIT_SSH_COMMAND+="-o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no"
+    GIT_SSH_COMMAND+=" -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no"
 else
     echo "WARNING: no known_hosts set and host verification is enabled (the default)"
     echo "WARNING: this job will fail due to host verification issues"
