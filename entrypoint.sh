@@ -44,4 +44,4 @@ fi
 
 
 git remote add mirror "${REMOTE}"
-eval git push ${GIT_PUSH_ARGS} mirror "\"refs/remotes/origin/${SOURCE_BRANCH}:refs/heads/{$REMOTE_BRANCH}\""
+eval git push ${GIT_PUSH_ARGS} mirror "\"refs/remotes/origin/${SOURCE_BRANCH}:refs/heads/${REMOTE_BRANCH}\""
