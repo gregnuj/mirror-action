@@ -32,23 +32,24 @@ if [[ "${HAS_CHECKED_OUT}" != "true" ]]; then
     git fetch --all > /dev/null 2>&1
 fi
 
-git config --global credential.username "${GIT_USERNAME}"
-
 if [[ ! -d ~/.ssh ]]; then
     mkdir -p ~/.ssh
 fi
 
+# create private key file
 if [[ -n "${GIT_SSH_PRIVATE_KEY}" ]]; then
-    echo "${GIT_SSH_PUBLIC_KEY}" > ~/.ssh/id_rsa
+    echo "${GIT_SSH_PRIVATE_KEY}" > ~/.ssh/id_rsa
     chmod 600 ~/.ssh/id_rsa
     GIT_SSH_COMMAND="-i ~/.ssh/id_rsa -o IdentitiesOnly=yes"
 fi
 
+# create publickey file
 if [[ -n "${GIT_SSH_PUBLIC_KEY}" ]]; then
     echo "${GIT_SSH_PUBLIC_KEY}" > ~/.ssh/id_rsa.pub
     chmod 644 ~/.ssh/id_rsa.pub
 fi
 
+# configure host key check settings
 if [[ -n "${GIT_SSH_KNOWN_HOSTS}" ]]; then
     echo "${GIT_SSH_KNOWN_HOSTS}" > ~/.ssh/known_hosts
     GIT_SSH_COMMAND+=" -o UserKnownHostsFile=~/.ssh/known_hosts"
@@ -61,9 +62,12 @@ else
     exit 1
 fi
 
+# configure git global settings 
+git config --global credential.username "${GIT_USERNAME}"
 git config --global core.sshCommand "${GIT_SSH_COMMAND}"
 git config --global core.askPass /cred-helper.sh
 git config --global credential.helper cache
 
+# add target repo as 'mirror'
 git remote add mirror "${REMOTE}"
 eval git push ${GIT_PUSH_ARGS} mirror "\"refs/remotes/origin/${SOURCE_BRANCH}:refs/heads/${REMOTE_BRANCH}\""
