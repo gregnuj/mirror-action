@@ -10,6 +10,7 @@ GIT_SSH_PRIVATE_KEY="${INPUT_GIT_SSH_PRIVATE_KEY}"
 GIT_PUSH_ARGS="${INPUT_GIT_PUSH_ARGS:-"--tags --force --prune"}"
 GIT_SSH_NO_VERIFY_HOST=${INPUT_GIT_SSH_NO_VERIFY_HOST}
 GIT_SSH_KNOWN_HOSTS=${INPUT_GIT_SSH_KNOWN_HOSTS}
+GIT_SSH_COMMAND_OPTS="ssh"
 REMOTE="${INPUT_REMOTE:-"$*"}"
 SOURCE_BRANCH="${INPUT_SOURCE_BRANCH:-"*"}"
 REMOTE_BRANCH="${INPUT_REMOTE_BRANCH:-"${SOURCE_BRANCH}"}"
@@ -33,28 +34,36 @@ fi
 
 git config --global credential.username "${GIT_USERNAME}"
 
+if [[ ! -d ~/.ssh ]]; then
+    mkdir -p ~/.ssh
+fi
 
 if [[ -n "${GIT_SSH_PRIVATE_KEY}" ]]; then
-    mkdir -p ~/.ssh
-    if [[ -n "${GIT_SSH_PUBLIC_KEY}" ]]; then
-        echo "${GIT_SSH_PUBLIC_KEY}" > ~/.ssh/id_rsa.pub
-        chmod 600 ~/.ssh/id_rsa.pub
-    fi
-    if [[ -n "${GIT_SSH_KNOWN_HOSTS}" ]]; then
-      echo "${GIT_SSH_KNOWN_HOSTS}" > ~/.ssh/known_hosts
-      git config --global core.sshCommand "ssh -i ~/.ssh/id_rsa -o IdentitiesOnly=yes -o UserKnownHostsFile=~/.ssh/known_hosts"
-    elif [[ "${GIT_SSH_NO_VERIFY_HOST}" == "true" ]]; then
-      git config --global core.sshCommand "ssh -i ~/.ssh/id_rsa -o IdentitiesOnly=yes -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no"
-    else
-      echo "WARNING: no known_hosts set and host verification is enabled (the default)"
-      echo "WARNING: this job will fail due to host verification issues"
-      echo "Please either provide the GIT_SSH_KNOWN_HOSTS or GIT_SSH_NO_VERIFY_HOST inputs"
-      exit 1
-    fi
-else
-    git config --global core.askPass /cred-helper.sh
-    git config --global credential.helper cache
+    echo "${GIT_SSH_PUBLIC_KEY}" > ~/.ssh/id_rsa
+    chmod 600 ~/.ssh/id_rsa
+    GIT_SSH_COMMAND="-i ~/.ssh/id_rsa -o IdentitiesOnly=yes"
 fi
+
+if [[ -n "${GIT_SSH_PUBLIC_KEY}" ]]; then
+    echo "${GIT_SSH_PUBLIC_KEY}" > ~/.ssh/id_rsa.pub
+    chmod 644 ~/.ssh/id_rsa.pub
+fi
+
+if [[ -n "${GIT_SSH_KNOWN_HOSTS}" ]]; then
+    echo "${GIT_SSH_KNOWN_HOSTS}" > ~/.ssh/known_hosts
+    GIT_SSH_COMMAND+=" -o UserKnownHostsFile=~/.ssh/known_hosts"
+elif [[ "${GIT_SSH_NO_VERIFY_HOST}" == "true" ]]; then
+    GIT_SSH_COMMAND+="-o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no"
+else
+    echo "WARNING: no known_hosts set and host verification is enabled (the default)"
+    echo "WARNING: this job will fail due to host verification issues"
+    echo "Please either provide the GIT_SSH_KNOWN_HOSTS or GIT_SSH_NO_VERIFY_HOST inputs"
+    exit 1
+fi
+
+git config --global core.sshCommand "${GIT_SSH_COMMAND}"
+git config --global core.askPass /cred-helper.sh
+git config --global credential.helper cache
 
 git remote add mirror "${REMOTE}"
 eval git push ${GIT_PUSH_ARGS} mirror "\"refs/remotes/origin/${SOURCE_BRANCH}:refs/heads/${REMOTE_BRANCH}\""
